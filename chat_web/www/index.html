@@ -1,0 +1,131 @@
+<html>
+
+<head>
+    <title>chatbot demo</title>
+    <meta charset="UTF-8">
+    <meta name="author" content="WangZY">
+    <meta name="description" content="practice for YiLu new comers">
+    <link href="./style.css" rel="stylesheet" type="text/css">
+    <style>
+        header {
+            padding: 10px 40px;
+            background: rgba(80, 80, 80, 0.6);
+            color: white;
+        }
+
+        .message {
+            padding: 10px 40px;
+            height: 350px;
+            border-bottom: 1px solid gray;
+            overflow: scroll;
+        }
+
+        .msg-user {
+            padding: 15px 30px;
+            margin: 10px;
+            background: rgba(252, 243, 207, 0.8);
+            border-radius: 10px;
+            width: 60%;
+        }
+
+        .msg-robot {
+            padding: 15px 30px;
+            margin: 10px;
+            background: rgba(171, 235, 198, 0.8);
+            border-radius: 10px;
+            width: 60%;
+        }
+
+        .tag {
+            font-size: small;
+            color: gray;
+        }
+
+        .input-box {
+            width: 100%;
+            height: 150px;
+            background: none;
+            border: none;
+            border-bottom: 1px solid gray;
+            resize: none;
+            padding: 10px 0px;
+            font-size: medium;
+        }
+
+        .btn-send {
+            width: 70px;
+            height: 35px;
+            float: right;
+            margin-right: 20px;
+            background: #2ECC71;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-send:hover {
+            cursor: pointer;
+            background: #58D68D;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page" id="app">
+        <div class="boxA">
+            <header>您正在与小智机器人对话</header>
+            <div class="message">
+                <div v-for="item in message" :class="item.isUser ? 'msg-user' : 'msg-robot'">
+                    <span class="tag" v-html="item.isUser? 'you' : 'robot'"></span>
+                    <br>
+                    {{item.msg}}
+                </div>
+            </div>
+            <textarea class="input-box" v-model="msgToSend" placeholder="请输入你想说的..."></textarea>
+            <footer>
+                <button @click="msgPost" class="btn-send">发送</button>
+            </footer>
+        </div>
+    </div>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: [],
+            msgToSend: ""
+        },
+        methods: {
+            msgPost() {
+                let msg = this.msgToSend;
+                let postData = {
+                    reqType: 0,
+                    perception: {
+                        inputText: {
+                            text: msg
+                        }
+                    },
+                    userInfo: {
+                        apiKey: "9b37be17281f45ddb455569f3e731d95",
+                        userId: "364503"
+                    }
+                };
+
+                this.message.push( { msg: msg, isUser: 1 });
+                this.msgToSend = "";
+                axios.post('http://localhost:8083/chat', postData)
+                    .then((response) => {
+                        this.message.push({ msg: response.data.msg.body.results[0].values.text, isUser: 0 })
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        alert('服务器错误...')
+                    });
+            }
+        }
+    })
+</script>
+
+</html>
